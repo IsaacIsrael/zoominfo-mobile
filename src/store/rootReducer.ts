@@ -2,23 +2,23 @@ import AsyncStorageLib from '@react-native-async-storage/async-storage';
 import { combineReducers } from 'redux';
 import { persistReducer } from 'redux-persist';
 import requestsReducers, { State as RequestsState } from './duckers/requests';
-import countReducers, { State as CountState } from './duckers/count';
+import productsReducers, { State as ProductsState } from './duckers/products';
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type RootState = {
   requests: RequestsState;
-  count: CountState;
+  products: ProductsState;
 };
 
 const rootReducer = combineReducers({
   requests: requestsReducers,
-  count: countReducers,
+  products: productsReducers,
 });
 
 const persistConfig = {
   key: 'LIFTED_REDUX_STORE',
   storage: AsyncStorageLib,
-  whitelist: ['count'],
+  whitelist: [''],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
