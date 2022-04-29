@@ -8,8 +8,8 @@ export interface ApiProducts {
 }
 
 class ProductServices {
-  async fetchByPage(page = 1): Promise<ApiProducts> {
-    const response = await httpServices.get<ApiProducts>(`/products?page=${page}`);
+  async fetchByPage(page = 1, query: string = ''): Promise<ApiProducts> {
+    const response = await httpServices.get<ApiProducts>(`/products?page=${page}&query=${query}`);
     return response.data;
   }
 }
