@@ -1,5 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import Constants from 'expo-constants';
 import Logger from '../helper/Logger';
 import timeout from '../helper/timeout';
 
@@ -22,7 +23,8 @@ class HTTPService {
 
   constructor() {
     axios.defaults.timeout = TIMEOUT_SEC * 1000;
-    axios.defaults.baseURL = '';
+    console.log(Constants.manifest?.extra?.baseURL);
+    axios.defaults.baseURL = Constants.manifest?.extra?.baseURL || 'http://localhost:3333';
 
     axios.interceptors.request.use((request) => {
       this.logRequest(request);

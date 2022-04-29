@@ -27,6 +27,9 @@
     },
     "web": {
       "favicon": "./src/assets/favicon.png"
+    },
+    "extra":{
+      "baseURL": "http://10.0.0.11:3333"
     }
   }
 }
