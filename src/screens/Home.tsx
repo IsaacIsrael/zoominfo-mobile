@@ -52,7 +52,7 @@ const Home: Screen<'Home'> = ({ navigation }) => {
   }, []);
 
   const onProductPress = (id: number) => () => {
-    console.log('Press the product id', id);
+    navigation.navigate('ProductDetails', { productId: id });
   };
 
   const renderProduct: ListRenderItem<Product> = ({ item: product }) => (
