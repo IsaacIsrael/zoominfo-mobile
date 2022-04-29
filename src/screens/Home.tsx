@@ -1,73 +1,78 @@
 /* eslint-disable react/style-prop-object */
-import React from 'react';
-import { ActivityIndicator, StyleSheet } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useEffect, useMemo } from 'react';
+import { ActivityIndicator, FlatList, ListRenderItem, StyleSheet, View } from 'react-native';
+import { useDispatch } from 'react-redux';
+import _values from 'lodash/values';
 import { Screen } from '../types/Navigation';
 import Container from '../components/Container';
 import { Sizes } from '../constants/Sizes';
-import Title from '../components/text/Title';
 import Body from '../components/text/Body';
-import Small from '../components/text/Small';
-import Button from '../components/button/Button';
-import Row from '../components/Row';
-import { RootState } from '../store';
 
-import { Creators as countReducer, Types as countActions } from '../store/duckers/count';
+import { Creators as productsReducer, Types as productsActions } from '../store/duckers/products';
 import useIsRequestLoading from '../hooks/useIsRequestLoading';
 import { Colors } from '../constants/Colors';
+import useAppSelector from '../hooks/useAppSelector';
+import { Product } from '../types/Products';
+import Touchable from '../components/button/Touchable';
 
 const styles = StyleSheet.create({
-  title: {
-    marginTop: Sizes.GUTTER * 2,
-    textAlign: 'center',
+  product: {
+    paddingHorizontal: Sizes.GUTTER * 0.25,
+    paddingVertical: Sizes.GUTTER,
   },
-  text: {
-    marginTop: Sizes.GUTTER,
-    marginBottom: Sizes.GUTTER * 0.25,
-  },
-  loading: {
-    marginTop: Sizes.GUTTER,
-  },
-  countWrapper: {
-    marginTop: Sizes.GUTTER,
-    alignItems: 'center',
-  },
-  button: {
-    width: 'auto',
-    flex: 1,
-  },
-  count: {
-    flex: 1,
+  productTitle: {
     fontWeight: 'bold',
-    textAlign: 'center',
+  },
+  separator: {
+    marginVertical: Sizes.GUTTER,
+    borderColor: Colors.PRIMARY,
+    borderWidth: 1,
+    opacity: 0.3,
   },
 });
 
-const Home: Screen<'Home'> = () => {
-  const countValue = useSelector<RootState, number>(({ count }) => count.value);
-  const isAdding = useIsRequestLoading(countActions.ADD_COUNT);
-  const isRemoving = useIsRequestLoading(countActions.REMOVE_COUNT);
+const Home: Screen<'Home'> = ({ navigation }) => {
+  const listHash = useAppSelector<Record<number, Product>>(({ products }) => products.list);
+  const list = useMemo(() => _values(listHash), [listHash]);
+
+  const nextPage = useAppSelector<number | undefined>(({ products }) => products.nextPage);
+  const isFetching = useIsRequestLoading(productsActions.FETCH_PRODUCTS);
   const dispatch = useDispatch();
 
-  const onAddPress = (): void => {
-    dispatch(countReducer.addCount(1));
+  const onEndReached = (): void => {
+    if (isFetching || !nextPage) {
+      return;
+    }
+
+    dispatch(productsReducer.fetchProducts());
   };
 
-  const onRemovePress = (): void => {
-    dispatch(countReducer.removeCount(1));
+  useEffect(() => {
+    dispatch(productsReducer.fetchProducts());
+  }, []);
+
+  const onProductPress = (id: number) => () => {
+    console.log('Press the product id', id);
   };
+
+  const renderProduct: ListRenderItem<Product> = ({ item: product }) => (
+    <Touchable style={styles.product} onPress={onProductPress(product.id)}>
+      <Body style={styles.productTitle}>{product.title}</Body>
+    </Touchable>
+  );
+
+  const renderLoading = (): React.ReactElement => <ActivityIndicator size="large" />;
 
   return (
-    <Container>
-      <Title style={styles.title}>Home Screen</Title>
-      <Body style={styles.text}>Open up view/Home.tsx to start working on this screen!</Body>
-      <Small>Lets create a great app.</Small>
-      {(isAdding || isRemoving) && <ActivityIndicator style={styles.loading} color={Colors.PRIMARY} />}
-      <Row style={styles.countWrapper}>
-        <Button title="+" style={styles.button} onPress={onAddPress} disabled={isAdding || isRemoving} />
-        <Body style={styles.count}>{countValue}</Body>
-        <Button title="-" style={styles.button} onPress={onRemovePress} disabled={isAdding || isRemoving} />
-      </Row>
+    <Container title="Product List">
+      <FlatList
+        data={list}
+        renderItem={renderProduct}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        onEndReached={onEndReached}
+        onEndReachedThreshold={0}
+        ListFooterComponent={isFetching ? renderLoading : undefined}
+      />
     </Container>
   );
 };
